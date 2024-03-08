@@ -49,6 +49,10 @@
  */
 #include "hpl.h"
 
+#ifdef HAVE_CALIPER
+#include <caliper/cali.h>
+#endif
+
 #ifdef STDC_HEADERS
 void HPL_pdtest
 (
@@ -194,11 +198,17 @@ void HPL_pdtest
  * Solve linear system
  */
    HPL_ptimer_boot(); (void) HPL_barrier( GRID->all_comm );
+#ifdef HAVE_CALIPER
+   CALI_MARK_BEGIN("HPL_pdgesv");
+#endif
    time( &current_time_start );
    HPL_ptimer( 0 );
    HPL_pdgesv( GRID, ALGO, &mat );
    HPL_ptimer( 0 );
    time( &current_time_end );
+#ifdef HAVE_CALIPER
+   CALI_MARK_END("HPL_pdgesv");
+#endif
 #ifdef HPL_CALL_VSIPL
    (void) vsip_blockrelease_d( mat.block, VSIP_TRUE ); 
    vsip_blockdestroy_d( mat.block );

@@ -49,6 +49,13 @@
  */
 #include "hpl.h"
 
+#ifdef HAVE_ADIAK
+#include <adiak.h>
+#endif
+#ifdef HAVE_CALIPER
+#include <caliper/cali.h>
+#endif
+
 #ifdef STDC_HEADERS
 int main
 (
@@ -112,6 +119,15 @@ int main( ARGC, ARGV )
 #endif
    MPI_Comm_rank( MPI_COMM_WORLD, &rank );
    MPI_Comm_size( MPI_COMM_WORLD, &size );
+#ifdef HAVE_ADIAK
+   MPI_Comm adiak_comm = MPI_COMM_WORLD;
+   MPI_Comm* adiak_comm_ptr = &adiak_comm;
+   adiak_init(adiak_comm_ptr);
+   adiak_collect_all();
+#endif
+#ifdef HAVE_CALIPER
+   CALI_MARK_FUNCTION_BEGIN;
+#endif
 /*
  * Read and check validity of test parameters from input file
  *
@@ -151,16 +167,34 @@ int main( ARGC, ARGV )
                &npfs, pfaval, &nbms, nbmval, &ndvs, ndvval, &nrfs, rfaval,
                &ntps, topval, &ndhs, ndhval, &fswap, &tswap, &L1notran,
                &Unotran, &equil, &align );
+#ifdef HAVE_ADIAK
+   adiak_namevalue("Ns",  adiak_general, NULL, "{%d}", nval,  ns);
+   adiak_namevalue("NBs", adiak_general, NULL, "{%d}", nbval, nbs);
+   adiak_namevalue("PMAP", adiak_general, NULL, "%d", pmapping);
+   adiak_namevalue("Ps",  adiak_general, NULL, "{%d}", pval,  npqs);
+   adiak_namevalue("Qs",  adiak_general, NULL, "{%d}", qval,  npqs);
+   adiak_namevalue("PFACTs", adiak_general, NULL, "{%d}", pfaval, npfs);
+   adiak_namevalue("NBMINs", adiak_general, NULL, "{%d}", nbmval, nbms);
+   adiak_namevalue("NDIVs", adiak_general, NULL, "{%d}", ndvval, ndvs);
+   adiak_namevalue("RFACTs", adiak_general, NULL, "{%d}", rfaval, nrfs);
+   adiak_namevalue("TPs", adiak_general, NULL, "{%d}", topval, ntps);
+   adiak_namevalue("DHs", adiak_general, NULL, "{%d}", ndhval, ndhs);
+#endif
 /*
  * Loop over different process grids - Define process grid. Go to bottom
  * of process grid loop if this case does not use my process.
  */
    for( ipq = 0; ipq < npqs; ipq++ )
    {
+#ifdef HAVE_CALIPER
+      CALI_MARK_BEGIN("HPL_grid_init");
+#endif
       (void) HPL_grid_init( MPI_COMM_WORLD, pmapping, pval[ipq], qval[ipq],
                             &grid );
       (void) HPL_grid_info( &grid, &nprow, &npcol, &myrow, &mycol );
-
+#ifdef HAVE_CALIPER
+      CALI_MARK_END("HPL_grid_init");
+#endif
       if( ( myrow < 0 ) || ( myrow >= nprow ) ||
           ( mycol < 0 ) || ( mycol >= npcol ) ) goto label_end_of_npqs;
 
@@ -219,9 +253,13 @@ int main( ARGC, ARGV )
 
               algo.fswap = fswap; algo.fsthr = tswap;
               algo.equil = equil; algo.align = align;
-
+#ifdef HAVE_CALIPER
+              CALI_MARK_BEGIN("HPL_pdtest");
+#endif
               HPL_pdtest( &test, &grid, &algo, nval[in], nbval[inb] );
-
+#ifdef HAVE_CALIPER
+              CALI_MARK_END("HPL_pdtest");
+#endif
              }
             }
            }
@@ -282,6 +320,12 @@ label_end_of_npqs: ;
    }
 #ifdef HPL_CALL_VSIPL
    vsip_finalize((void*)0);
+#endif
+#ifdef HAVE_ADIAK
+   adiak_fini();
+#endif
+#ifdef HAVE_CALIPER
+   CALI_MARK_FUNCTION_END;
 #endif
    MPI_Finalize();
    exit( 0 );

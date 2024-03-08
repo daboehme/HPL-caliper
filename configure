@@ -719,6 +719,8 @@ ac_user_opts='
 enable_option_checking
 enable_dependency_tracking
 enable_silent_rules
+with_adiak
+with_caliper
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1350,6 +1352,12 @@ Optional Features:
                           speeds up one-time build
   --enable-silent-rules   less verbose build output (undo: "make V=1")
   --disable-silent-rules  verbose build output (undo: "make V=0")
+
+Optional Packages:
+  --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
+  --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+  --with-adiak=<path>     Enable metadata collection with adiak
+  --with-caliper=<path>   Enable profiling with caliper
 
 Some influential environment variables:
   MPICC       MPI C compiler command
@@ -4698,6 +4706,80 @@ fi
 
 done
 
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking --with-adiak" >&5
+$as_echo_n "checking --with-adiak... " >&6; }
+
+# Check whether --with-adiak was given.
+if test "${with_adiak+set}" = set; then :
+  withval=$with_adiak; with_adiak=$withval
+else
+  with_adiak=no
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $with_adiak" >&5
+$as_echo "$with_adiak" >&6; }
+
+if test "x$with_adiak" != xno; then
+    adiak_root=$with_adiak
+    CPPFLAGS+=" -I$adiak_root/include"
+    LIBS+=" -L$adiak_root/lib -ladiak"
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <adiak.h>
+        int main() { adiak_init(NULL); return 0; }
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: Found Adiak" >&5
+$as_echo "Found Adiak" >&6; }
+else
+  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "Could not link with adiak
+See \`config.log' for more details" "$LINENO" 5; }
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+    $as_echo "#define HAVE_ADIAK 1" >>confdefs.h
+
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking --with-caliper" >&5
+$as_echo_n "checking --with-caliper... " >&6; }
+
+# Check whether --with-caliper was given.
+if test "${with_caliper+set}" = set; then :
+  withval=$with_caliper; with_caliper=$withval
+else
+  with_caliper=no
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $with_caliper" >&5
+$as_echo "$with_caliper" >&6; }
+
+if test "x$with_caliper" != xno; then
+    caliper_root=$with_caliper
+    CPPFLAGS+=" -I$caliper_root/include"
+    LIBS+=" -L$caliper_root/lib64 -lcaliper"
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <caliper/cali.h>
+        int main() { cali_begin_region("main"); cali_end_region("main"); return 0; }
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: Found Caliper" >&5
+$as_echo "Found Caliper" >&6; }
+else
+  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "Could not link with caliper
+See \`config.log' for more details" "$LINENO" 5; }
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+    $as_echo "#define HAVE_CALIPER 1" >>confdefs.h
+
+fi
 
 ac_config_files="$ac_config_files Makefile src/Makefile testing/Makefile"
 

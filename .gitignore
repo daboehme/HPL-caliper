@@ -1,0 +1,12 @@
+*.Po
+*.log
+config.status
+*.o
+autom4te.cache
+include/hplconfig.h
+include/stamp-h1
+Makefile
+src/libhpl.a
+testing/xhpl
+**/.deps
+**/.dirstamp

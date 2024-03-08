@@ -72,6 +72,7 @@
  * Include files
  * ---------------------------------------------------------------------
  */
+
 #include "hpl_misc.h"
 #include "hpl_blas.h"
 #include "hpl_auxil.h"
@@ -90,6 +91,8 @@
 #include "hpl_ptimer.h"
 #include "hpl_pmatgen.h"
 #include "hpl_ptest.h"
+
+#include "hplconfig.h"
 
 #endif
 /*
