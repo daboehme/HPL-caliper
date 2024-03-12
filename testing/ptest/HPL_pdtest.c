@@ -50,6 +50,8 @@
 #include "hpl.h"
 
 #ifdef HAVE_CALIPER
+#include <adiak.h>
+#include <adiak_tool.h>
 #include <caliper/cali.h>
 #endif
 
@@ -137,6 +139,10 @@ void HPL_pdtest
    int                        ii, ip2, mycol, myrow, npcol, nprow, nq;
    char                       ctop, cpfact, crfact;
    time_t                     current_time_start, current_time_end;
+#ifdef HAVE_CALIPER
+   adiak_value_t*             adk_val;
+   int                        res;
+#endif
 /* ..
  * .. Executable Statements ..
  */
@@ -269,6 +275,16 @@ void HPL_pdtest
          HPL_fprintf( TEST->outfp,
              "HPL_pdgesv() end time   %s\n", ctime( &current_time_end ) );
       }
+#ifdef HAVE_CALIPER
+      res = adiak_get_nameval("Gflops", NULL, &adk_val, NULL, NULL);
+      if (res != 0 || Gflops > adk_val->v_double) {
+         adiak_namevalue("Gflops",  adiak_performance, NULL, "%f", Gflops);
+         adiak_namevalue("best N", adiak_general, NULL, "%d", N);
+         adiak_namevalue("best NB", adiak_general, NULL, "%d", NB);
+         adiak_namevalue("best P", adiak_general, NULL, "%d", nprow);
+         adiak_namevalue("best Q", adiak_general, NULL, "%d", npcol);
+      }
+#endif
    }
 #ifdef HPL_DETAILED_TIMING
    HPL_ptimer_combine( GRID->all_comm, HPL_AMAX_PTIME, HPL_WALL_PTIME,
